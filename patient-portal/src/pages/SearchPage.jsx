@@ -28,8 +28,8 @@ function SearchPage() {
   // Runs ONCE when SearchPage first appears on screen. Opens a WebSocket
   // connection and keeps it alive for as long as this page is mounted.
   useEffect(() => {
-    const socket = new WebSocket('ws://127.0.0.1:8000/ws/inventory/');
-
+const wsUrl = import.meta.env.VITE_WS_URL || 'ws://127.0.0.1:8000/ws/inventory/';
+const socket = new WebSocket(wsUrl);
     socket.onopen = () => {
       console.log('WebSocket connected');
     };
