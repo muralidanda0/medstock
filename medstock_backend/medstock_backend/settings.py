@@ -14,6 +14,11 @@ ADMIN_USERNAME = config('ADMIN_USERNAME', default='')
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='')
 ADMIN_PASSWORD = config('ADMIN_PASSWORD', default='')
 
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://127.0.0.1,http://127.0.0.1'
+).split(',')
+
 
 INSTALLED_APPS = [
     'daphne',
