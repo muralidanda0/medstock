@@ -1,0 +1,19 @@
+# Python / Django backend
+venv/
+medstock_backend/venv/
+__pycache__/
+*.pyc
+medstock_backend/db.sqlite3
+.env
+
+# React frontends
+node_modules/
+patient-portal/node_modules/
+pharmacy-portal/node_modules/
+dist/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
