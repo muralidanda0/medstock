@@ -1,4 +1,6 @@
+from django.core.cache import cache
 from rest_framework import generics, permissions
+from rest_framework.response import Response
 from .models import Inventory
 from .serializers import InventorySerializer, InventoryWriteSerializer
 from accounts.permissions import IsPharmacyRole
@@ -7,10 +9,29 @@ from accounts.permissions import IsPharmacyRole
 class InventorySearchView(generics.ListAPIView):
     """
     GET /api/inventory/search/?medicine=paracetamol&city=Hyderabad
-    Public. This is the main patient-facing search endpoint.
+    Public. This is the main patient-facing search endpoint — now cached.
     """
     serializer_class = InventorySerializer
     permission_classes = [permissions.AllowAny]
+
+    def list(self, request, *args, **kwargs):
+        medicine_name = request.query_params.get('medicine', '')
+        city = request.query_params.get('city', '')
+
+        cache_key = f"inventory_search:{medicine_name.lower()}:{city.lower()}"
+
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            print(f"CACHE HIT for key: {cache_key}")
+            return Response(cached_data)
+
+        print(f"CACHE MISS for key: {cache_key} — querying database")
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        cache.set(cache_key, serializer.data, timeout=30)
+
+        return Response(serializer.data)
 
     def get_queryset(self):
         qs = Inventory.objects.select_related('medicine', 'pharmacy').filter(quantity__gt=0)
@@ -23,10 +44,6 @@ class InventorySearchView(generics.ListAPIView):
         if city:
             qs = qs.filter(pharmacy__city__icontains=city)
 
-        # WHY order_by price here: simplest possible "lowest price first"
-        # sort for now. Full ranking (price + distance + availability
-        # weighted together) comes later once we add geolocation distance
-        # calculation — flagged in your original spec as a dedicated topic.
         return qs.order_by('price')
 
 
@@ -44,8 +61,6 @@ class MyInventoryListCreateView(generics.ListCreateAPIView):
         return Inventory.objects.filter(pharmacy=self.request.user.pharmacy)
 
     def perform_create(self, serializer):
-        # Same principle as pharmacy ownership earlier: pharmacy is taken
-        # from the logged-in user's own Pharmacy, never from request data.
         serializer.save(pharmacy=self.request.user.pharmacy)
 
 
@@ -57,7 +72,4 @@ class MyInventoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsPharmacyRole]
 
     def get_queryset(self):
-        # Scoping the queryset to the logged-in pharmacy is what actually
-        # prevents Pharmacy A from editing Pharmacy B's stock via this
-        # endpoint — even if they guessed another pharmacy's inventory ID.
         return Inventory.objects.filter(pharmacy=self.request.user.pharmacy)

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from datetime import timedelta
 
@@ -60,7 +61,27 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174',
 ]
+
+# ---------------------------------------------------------------------------
+# Redis cache configuration
+# ---------------------------------------------------------------------------
+# WHY cache search results: your spec calls "Search Service" one of the
+# busiest paths in the system — every patient browsing medicines hits the
+# database. Caching common queries (e.g. "paracetamol") means the 2nd,
+# 3rd, 100th patient searching the same term gets an instant response
+# from Redis (in-memory) instead of re-querying PostgreSQL each time.
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'rediss://default:gQAAAAAAAus5AAIgcDE0YzY0NDExMGRlMDM0NjVkYWNjOWZmNWRiNjQ2NDQ5MA@calm-pipefish-191289.upstash.io:6379',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
 
 ROOT_URLCONF = 'medstock_backend.urls'
 
