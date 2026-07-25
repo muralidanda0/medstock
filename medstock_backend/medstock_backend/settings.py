@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'billing',
 ]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 ASGI_APPLICATION = 'medstock_backend.asgi.application'
 
 # Channels needs a "channel layer" — a backend that lets different
