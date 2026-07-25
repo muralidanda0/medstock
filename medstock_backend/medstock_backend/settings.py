@@ -10,6 +10,9 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-CHANGE-THIS-later-for
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
+ADMIN_USERNAME = config('ADMIN_USERNAME', default='')
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='')
+ADMIN_PASSWORD = config('ADMIN_PASSWORD', default='')
 
 
 INSTALLED_APPS = [
